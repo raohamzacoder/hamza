@@ -38,11 +38,16 @@ export default function CustomerPortalForm({ subscription }: Props) {
     }).format((subscription?.prices?.unit_amount || 0) / 100);
 
   const handleStripePortalRequest = async () => {
-    setIsSubmitting(true);
-    const redirectUrl = await createStripePortal(currentPath);
-    setIsSubmitting(false);
+  setIsSubmitting(true);
+  const redirectUrl = await createStripePortal(currentPath);
+  setIsSubmitting(false);
+
+  if (redirectUrl) {
     return router.push(redirectUrl);
-  };
+  } else {
+    console.error("Stripe portal URL is null");
+  }
+};
 
   return (
     <Card
