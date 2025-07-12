@@ -19,50 +19,46 @@ export function Toaster() {
   const router = useRouter();
 
   useEffect(() => {
-    const status = searchParams.get('status');
-    const status_description = searchParams.get('status_description');
-    const error = searchParams.get('error');
-    const error_description = searchParams.get('error_description');
+    // ✅ Ensure searchParams is not null before using
+    if (!searchParams) return;
+
+    const status = searchParams.get('status') ?? '';
+    const status_description = searchParams.get('status_description') ?? '';
+    const error = searchParams.get('error') ?? '';
+    const error_description = searchParams.get('error_description') ?? '';
+
     if (error || status) {
       toast({
         title: error
-          ? error ?? 'Hmm... Something went wrong.'
-          : status ?? 'Alright!',
+          ? error || 'Hmm... Something went wrong.'
+          : status || 'Alright!',
         description: error ? error_description : status_description,
         variant: error ? 'destructive' : undefined
       });
-      // Clear any 'error', 'status', 'status_description', and 'error_description' search params
-      // so that the toast doesn't show up again on refresh, but leave any other search params
-      // intact.
+
+      // ✅ Safely clear toast-related query params
       const newSearchParams = new URLSearchParams(searchParams.toString());
-      const paramsToRemove = [
-        'error',
-        'status',
-        'status_description',
-        'error_description'
-      ];
-      paramsToRemove.forEach((param) => newSearchParams.delete(param));
-      const redirectPath = `${pathname}?${newSearchParams.toString()}`;
-      router.replace(redirectPath, { scroll: false });
+      ['error', 'status', 'status_description', 'error_description'].forEach((param) =>
+        newSearchParams.delete(param)
+      );
+
+      const newPath = `${pathname}?${newSearchParams.toString()}`;
+      router.replace(newPath, { scroll: false });
     }
-  }, [searchParams]);
+  }, [searchParams, pathname, router, toast]);
 
   return (
     <ToastProvider>
-      {toasts.map(function ({ id, title, description, action, ...props }) {
-        return (
-          <Toast key={id} {...props}>
-            <div className="grid gap-1">
-              {title && <ToastTitle>{title}</ToastTitle>}
-              {description && (
-                <ToastDescription>{description}</ToastDescription>
-              )}
-            </div>
-            {action}
-            <ToastClose />
-          </Toast>
-        );
-      })}
+      {toasts.map(({ id, title, description, action, ...props }) => (
+        <Toast key={id} {...props}>
+          <div className="grid gap-1">
+            {title && <ToastTitle>{title}</ToastTitle>}
+            {description && <ToastDescription>{description}</ToastDescription>}
+          </div>
+          {action}
+          <ToastClose />
+        </Toast>
+      ))}
       <ToastViewport />
     </ToastProvider>
   );
