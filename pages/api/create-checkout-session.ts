@@ -1,4 +1,5 @@
 // pages/api/create-checkout-session.ts
+
 import { NextApiRequest, NextApiResponse } from 'next';
 import Stripe from 'stripe';
 
@@ -7,6 +8,16 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // ✅ CORS Headers
+  res.setHeader('Access-Control-Allow-Origin', '*'); // For development — later replace * with your frontend domain
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // ✅ Handle preflight request
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).end('Method Not Allowed');
   }
