@@ -1,5 +1,4 @@
 // pages/api/create-checkout-session.ts
-
 import { NextApiRequest, NextApiResponse } from 'next';
 import Stripe from 'stripe';
 
@@ -8,22 +7,15 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // ✅ CORS Headers
-  res.setHeader('Access-Control-Allow-Origin', '*'); // For development — later replace * with your frontend domain
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  // ✅ Handle preflight request
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
   if (req.method !== 'POST') {
     return res.status(405).end('Method Not Allowed');
   }
 
   try {
     const { priceId } = req.body;
+
+    // ✅ Add logs for debugging
+    console.log('💡 Received priceId from frontend:', priceId);
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
@@ -38,9 +30,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       cancel_url: `${req.headers.origin}/?canceled=true`
     });
 
+    // ✅ Log the session object to verify creation
+    console.log('✅ Stripe Checkout Session created:', session);
+
     res.status(200).json({ sessionId: session.id });
   } catch (err: any) {
-    console.error('Stripe checkout error:', err.message);
+    console.error('❌ Stripe checkout error:', err.message);
     res.status(500).json({ error: 'Stripe checkout failed. ' + err.message });
   }
 }
+
