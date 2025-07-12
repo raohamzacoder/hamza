@@ -44,42 +44,43 @@ export default function Pricing({ user, products, subscription }: Props) {
   const [billingInterval, setBillingInterval] =
     useState<BillingInterval>('month');
   const [priceIdLoading, setPriceIdLoading] = useState<string>();
-  const currentPath = usePathname();
+  const currentPath = usePathname() ?? '/';
+
 
   const handleStripeCheckout = async (price: Price) => {
-    setPriceIdLoading(price.id);
+  setPriceIdLoading(price.id);
 
-    if (!user) {
-      setPriceIdLoading(undefined);
-      return router.push('/signin/signup');
-    }
-const currentPath = usePathname();
-
-const { errorRedirect, sessionId } = await checkoutWithStripe(price, currentPath ?? '/');
-
-    );
-
-    if (errorRedirect) {
-      setPriceIdLoading(undefined);
-      return router.push(errorRedirect);
-    }
-
-    if (!sessionId) {
-      setPriceIdLoading(undefined);
-      return router.push(
-        getErrorRedirect(
-          currentPath,
-          'An unknown error occurred.',
-          'Please try again later or contact a system administrator.'
-        )
-      );
-    }
-
-    const stripe = await getStripe();
-    stripe?.redirectToCheckout({ sessionId });
-
+  if (!user) {
     setPriceIdLoading(undefined);
-  };
+    return router.push('/signin/signup');
+  }
+
+  const { errorRedirect, sessionId } = await checkoutWithStripe(
+    price,
+    currentPath ?? '/'
+  );
+
+  if (errorRedirect) {
+    setPriceIdLoading(undefined);
+    return router.push(errorRedirect);
+  }
+
+  if (!sessionId) {
+    setPriceIdLoading(undefined);
+    return router.push(
+      getErrorRedirect(
+        currentPath,
+        'An unknown error occurred.',
+        'Please try again later or contact a system administrator.'
+      )
+    );
+  }
+
+  const stripe = await getStripe();
+  stripe?.redirectToCheckout({ sessionId });
+
+  setPriceIdLoading(undefined);
+};
 
   if (!products.length) {
     return (
