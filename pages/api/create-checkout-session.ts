@@ -1,3 +1,4 @@
+// pages/api/create-checkout-session.ts
 import { NextApiRequest, NextApiResponse } from 'next';
 import Stripe from 'stripe';
 
@@ -6,6 +7,15 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).end('Method Not Allowed');
   }
@@ -26,10 +36,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       cancel_url: `${req.headers.origin}/?canceled=true`
     });
 
-    // ✅ return full URL, not just session ID
     res.status(200).json({ url: session.url });
   } catch (err: any) {
     console.error('Stripe checkout error:', err.message);
     res.status(500).json({ error: 'Stripe checkout failed. ' + err.message });
   }
 }
+
+
